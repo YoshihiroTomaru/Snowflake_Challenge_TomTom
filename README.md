@@ -38,19 +38,15 @@ pip install -r requirements.txt
 
 ### 4. `.env` ファイルの作成
 
-このプロジェクトでは、秘匿情報を管理するために `.env` ファイルを使用します。プロジェクトのルートディレクトリに `.env` という名前のファイルを作成し、以下の内容を記述してください。**このファイルはGitにコミットしないでください。**
+このプロジェクトでは、秘匿情報を管理するために `.env` ファイルを使用します。まず、`example.env` ファイルをコピーして `.env` という名前のファイルを作成します。
 
-```env
-SNOWFLAKE_ACCOUNT="YOUR_SNOWFLAKE_ACCOUNT"
-SNOWFLAKE_USER="YOUR_SNOWFLAKE_USER"
-PRIVATE_KEY_FILE="./path/to/your/rsa_key.p8"
-PRIVATE_KEY_PASSPHRASE="YOUR_PASSPHRASE"
-SEMANTIC_VIEW_NAME="YOUR_SEMANTIC_VIEW_NAME"
-SNOWFLAKE_DATABASE="YOUR_DATABASE"
-SNOWFLAKE_SCHEMA="YOUR_SCHEMA"
+```bash
+cp example.env .env
 ```
 
-上記のプレースホルダー (`YOUR_...`) を、ご自身のSnowflakeアカウント情報や秘密鍵の情報に置き換えてください。
+次に、作成した `.env` ファイルを開き、プレースホルダー (`YOUR_...`) をご自身のSnowflakeアカウント情報や秘密鍵の情報に置き換えてください。
+
+**`.env` ファイルはGitにコミットしないでください。** `.gitignore` に `.env` が含まれていることを確認してください。
 
 ### 5. 秘密鍵の配置
 
