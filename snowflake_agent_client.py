@@ -15,9 +15,13 @@ SNOWFLAKE_ACCOUNT = os.getenv('SNOWFLAKE_ACCOUNT')
 SNOWFLAKE_USER = os.getenv('SNOWFLAKE_USER')
 PRIVATE_KEY_FILE = os.getenv('PRIVATE_KEY_FILE')
 PRIVATE_KEY_PASSPHRASE = os.getenv('PRIVATE_KEY_PASSPHRASE')
-SEMANTIC_VIEW_NAME = os.getenv('SEMANTIC_VIEW_NAME')
 SNOWFLAKE_DATABASE = os.getenv('SNOWFLAKE_DATABASE')
 SNOWFLAKE_SCHEMA = os.getenv('SNOWFLAKE_SCHEMA')
+
+# --- クエリ対象を読み込む ---
+SEMANTIC_MODEL_STAGE = os.getenv('SEMANTIC_MODEL_STAGE')
+SEMANTIC_MODEL_FILENAME = os.getenv('SEMANTIC_MODEL_FILENAME')
+SEMANTIC_VIEW_NAME = os.getenv('SEMANTIC_VIEW_NAME')
 
 
 def main():
@@ -26,8 +30,16 @@ def main():
     """
     try:
         # --- 設定の検証 ---
-        if not all([SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER, PRIVATE_KEY_FILE, SEMANTIC_VIEW_NAME]):
-            print("エラー: 必要な環境変数が.envファイルに設定されていません。")
+        if not all([SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER, PRIVATE_KEY_FILE, SNOWFLAKE_DATABASE, SNOWFLAKE_SCHEMA]):
+            print("エラー: 基本的な環境変数が.envファイルに設定されていません。")
+            return
+
+        model_path = None
+        if SEMANTIC_MODEL_STAGE and SEMANTIC_MODEL_FILENAME:
+            model_path = f"@{SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{SEMANTIC_MODEL_STAGE}/{SEMANTIC_MODEL_FILENAME}"
+
+        if not (model_path or SEMANTIC_VIEW_NAME):
+            print("エラー: .envファイルで、セマンティックモデル(STAGE/FILENAME) または セマンティックビュー(VIEW_NAME)のどちらかを設定してください。")
             return
 
         # --- 認証フェーズ ---
@@ -37,18 +49,22 @@ def main():
         print("認証トークンの生成に成功しました。")
 
         # --- 質問フェーズ ---
+        target_name = model_path if model_path else SEMANTIC_VIEW_NAME
+        print(f"'{target_name}' を使用して問い合わせます。")
+
         while True:
-            question = input("\nセマンティックビューへの質問を入力してください (終了するにはexitと入力): ")
+            question = input("\n質問を入力してください (終了するにはexitと入力): ")
             if question.lower() == 'exit':
                 break
 
             result = call_analyst_api(
-                jwt_token,
-                SNOWFLAKE_ACCOUNT,
-                SNOWFLAKE_DATABASE,
-                SNOWFLAKE_SCHEMA,
-                SEMANTIC_VIEW_NAME,
-                question
+                jwt_token=jwt_token,
+                snowflake_account=SNOWFLAKE_ACCOUNT,
+                database=SNOWFLAKE_DATABASE,
+                schema=SNOWFLAKE_SCHEMA,
+                question=question,
+                semantic_model_file_path=model_path,
+                semantic_view=SEMANTIC_VIEW_NAME
             )
 
             print("\n--- APIからの回答 ---")
