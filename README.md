@@ -36,7 +36,43 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. `.env` ファイルの作成
+### 4. キーペアの作成とSnowflakeへの登録
+
+このクライアントはSnowflakeへの接続にキーペア認証を使用します。以下の手順で秘密鍵と公開鍵のペアを作成し、公開鍵をSnowflakeユーザーに登録してください。
+
+**a. 秘密鍵と公開鍵を生成する**
+
+PowerShell（Windows）やターミナル（macOS/Linux）などで以下の `openssl` コマンドを実行して、暗号化された秘密鍵（`rsa_key.p8`）と公開鍵（`rsa_key.pub`）を生成します。
+
+```bash
+# 暗号化された秘密鍵を生成（推奨）
+openssl genrsa 2048 | openssl pkcs8 -topk8 -v2 des3 -inform PEM -out rsa_key.p8
+
+# 秘密鍵から公開鍵を生成
+openssl rsa -in rsa_key.p8 -pubout -out rsa_key.pub
+```
+
+最初のコマンド実行時に、秘密鍵を保護するためのパスフレーズの入力を求められます。このパスフレーズは後で `.env` ファイルに設定するので、忘れないようにしてください。
+
+**b. 公開鍵をSnowflakeに登録する**
+
+まず、生成された公開鍵ファイル (`rsa_key.pub`) の内容から、ヘッダー (`-----BEGIN PUBLIC KEY-----`) とフッター (`-----END PUBLIC KEY-----`) **および、その間の改行コードをすべて取り除き**、1行の文字列にしたものをコピーします。
+
+以下のコマンドを実行すると、整形済みのキーがターミナルに出力されるので便利です。
+
+```bash
+cat rsa_key.pub | grep -v -- '-----' | tr -d '\n'
+```
+
+次に、ブラウザでSnowflakeにログインし、ワークシートを開いて以下のSQLコマンドを実行して、コピーした公開鍵の文字列を対象のユーザーに登録します。
+
+```sql
+ALTER USER YOUR_SNOWFLAKE_USER SET RSA_PUBLIC_KEY='ここにコピーした1行の公開鍵文字列を貼り付け';
+```
+
+`YOUR_SNOWFLAKE_USER` には、Snowflake UIの左下に表示されるご自身のユーザー名（例: `TMARU`）を指定してください。
+
+### 5. `.env` ファイルの作成
 
 このプロジェクトでは、秘匿情報を管理するために `.env` ファイルを使用します。まず、`example.env` ファイルをコピーして `.env` という名前のファイルを作成します。
 
@@ -46,11 +82,13 @@ cp example.env .env
 
 次に、作成した `.env` ファイルを開き、プレースホルダー (`YOUR_...`) をご自身のSnowflakeアカウント情報や秘密鍵の情報に置き換えてください。
 
+`SNOWFLAKE_USER` には、Snowflakeへのログインに使用するユーザー名を設定します。SSOを利用している場合は、SSOのログイン名となります。これは、`ALTER USER` コマンドで指定したユーザー名と異なる場合があります。
+
 **`.env` ファイルはGitにコミットしないでください。** `.gitignore` に `.env` が含まれていることを確認してください。
 
-### 5. 秘密鍵の配置
+### 6. 秘密鍵の配置
 
-ご自身の秘密鍵ファイル（例: `rsa_key.p8`）を、`.env` ファイル内の `PRIVATE_KEY_FILE` で指定したパスに配置してください。
+生成したご自身の秘密鍵ファイル（例: `rsa_key.p8`）を、`.env` ファイル内の `PRIVATE_KEY_FILE` で指定したパスに配置してください。
 
 ## 実行方法
 
