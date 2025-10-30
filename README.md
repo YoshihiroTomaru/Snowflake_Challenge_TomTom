@@ -70,7 +70,7 @@ cat rsa_key.pub | grep -v -- '-----' | tr -d '\n'
 ALTER USER YOUR_SNOWFLAKE_USER SET RSA_PUBLIC_KEY='ここにコピーした1行の公開鍵文字列を貼り付け';
 ```
 
-`YOUR_SNOWFLAKE_USER` には、Snowflake UIの左下に表示されるご自身のユーザー名（例: `TMARU`）を指定してください。
+`YOUR_SNOWFLAKE_USER` には、Snowflake UIの左下に表示されるご自身のユーザー名（例: `MITSUBISHI_TARO`）を指定してください。
 
 ### 5. `.env` ファイルの作成
 
