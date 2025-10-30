@@ -1,7 +1,7 @@
 import requests
 
 
-def call_analyst_api(jwt_token, snowflake_account, database, schema, semantic_view, question):
+def call_analyst_api(jwt_token, snowflake_account, database, schema, semantic_model_file_path, question):
     """
     JWTトークンと質問を使ってCortex Analyst APIを呼び出す。
     """
@@ -14,10 +14,8 @@ def call_analyst_api(jwt_token, snowflake_account, database, schema, semantic_vi
         'X-Snowflake-Authorization-Token-Type': 'KEYPAIR_JWT'
     }
 
-    full_semantic_view = f"{database}.{schema}.{semantic_view}"
-
     data = {
-        "semantic_view": full_semantic_view,
+        "semantic_model_file": semantic_model_file_path,
         "messages": [
             {
                 "role": "user",
@@ -31,7 +29,7 @@ def call_analyst_api(jwt_token, snowflake_account, database, schema, semantic_vi
         ]
     }
 
-    print(f"\n'{full_semantic_view}' に問い合わせています...")
+    print(f"\n'{semantic_model_file_path}' に問い合わせています...")
     response = requests.post(url, headers=headers, json=data)
     response.raise_for_status()
 

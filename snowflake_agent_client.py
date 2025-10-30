@@ -15,7 +15,7 @@ SNOWFLAKE_ACCOUNT = os.getenv('SNOWFLAKE_ACCOUNT')
 SNOWFLAKE_USER = os.getenv('SNOWFLAKE_USER')
 PRIVATE_KEY_FILE = os.getenv('PRIVATE_KEY_FILE')
 PRIVATE_KEY_PASSPHRASE = os.getenv('PRIVATE_KEY_PASSPHRASE')
-SEMANTIC_VIEW_NAME = os.getenv('SEMANTIC_VIEW_NAME')
+SEMANTIC_MODEL_FILE_PATH = os.getenv('SEMANTIC_MODEL_FILE_PATH')
 SNOWFLAKE_DATABASE = os.getenv('SNOWFLAKE_DATABASE')
 SNOWFLAKE_SCHEMA = os.getenv('SNOWFLAKE_SCHEMA')
 
@@ -26,7 +26,7 @@ def main():
     """
     try:
         # --- 設定の検証 ---
-        if not all([SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER, PRIVATE_KEY_FILE, SEMANTIC_VIEW_NAME]):
+        if not all([SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER, PRIVATE_KEY_FILE, SEMANTIC_MODEL_FILE_PATH]):
             print("エラー: 必要な環境変数が.envファイルに設定されていません。")
             return
 
@@ -38,7 +38,7 @@ def main():
 
         # --- 質問フェーズ ---
         while True:
-            question = input("\nセマンティックビューへの質問を入力してください (終了するにはexitと入力): ")
+            question = input("\nセマンティックモデルへの質問を入力してください (終了するにはexitと入力): ")
             if question.lower() == 'exit':
                 break
 
@@ -47,7 +47,7 @@ def main():
                 SNOWFLAKE_ACCOUNT,
                 SNOWFLAKE_DATABASE,
                 SNOWFLAKE_SCHEMA,
-                SEMANTIC_VIEW_NAME,
+                SEMANTIC_MODEL_FILE_PATH,
                 question
             )
 
