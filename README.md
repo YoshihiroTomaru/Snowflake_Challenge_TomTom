@@ -110,3 +110,42 @@ python snowflake_agent_client.py
 ```
 
 スクリプトを実行すると、質問を入力するよう求められます。終了するには `exit` と入力してください。
+
+## 実行結果の例
+
+スクリプトを実行し、「どんなデータが見れますか？」と質問した場合のAPIレスポンスの例です。
+
+```json
+{
+  "message": {
+    "role": "analyst",
+    "content": [
+      {
+        "type": "text",
+        "text": "This semantic data model contains environmental monitoring data including temperature, humidity, and carbon dioxide measurements collected over time from different locations. It also includes information about room characteristics such as area categories and sizes. You can analyze environmental trends, compare conditions across different locations and room types, and track changes in environmental metrics over time."
+      },
+      {
+        "type": "suggestions",
+        "suggestions": [
+          "What is the average CO2 emissions level across all locations last month?",
+          "What are the temperature readings for each area category?",
+          "What is the total humidity percentage recorded year to date?"
+        ]
+      }
+    ]
+  },
+  "request_id": "15ee04aa-58d2-4aa4-a6b6-3551c5f18760",
+  "warnings": [],
+  "semantic_model_selection": null,
+  "response_metadata": {
+    "model_names": [
+      "claude-4-sonnet"
+    ],
+    "is_semantic_sql": false,
+    "cortex_search_retrieval": [],
+    "question_category": "ONBOARDING",
+    "analyst_orchestration_path": "regular_sqlgen",
+    "analyst_latency_ms": 4561.0
+  }
+}
+```
