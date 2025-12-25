@@ -1,0 +1,99 @@
+name: environmental_analysis_model
+description: Model for analyzing indoor environmental data.
+tables:
+  - name: environmental_data
+    description: This table stores environmental data collected from various locations, including temperature, humidity, and CO2 levels, with each record timestamped to the hour and associated with a specific location identifier.
+    base_table:
+      database: MELIPS_HANDS_ON
+      schema: STAGING
+      table: ENVIRONMENTAL_DATA
+    dimensions:
+      - name: locationID
+        description: Unique identifier for a specific geographic location where environmental data is collected.
+        expr: '"locationID"'
+        data_type: NUMBER
+        sample_values:
+          - '24'
+          - '54'
+          - '2'
+    time_dimensions:
+      - name: timestamp_hour
+        description: The hour at which the environmental data was recorded, in 24-hour format and including the date, to the nearest minute.
+        expr: '"service_timestamp_hour"'
+        data_type: TIMESTAMP_TZ
+        sample_values:
+          - 2025-01-06T11:00:00.000+0000
+          - 2025-01-06T15:00:00.000+0000
+          - 2025-01-07T09:00:00.000+0000
+    facts:
+      - name: co2
+        description: The amount of carbon dioxide emissions, measured in parts per million (ppm), representing the concentration of CO2 in the atmosphere.
+        expr: '"CO2"'
+        data_type: NUMBER
+        sample_values:
+          - '681'
+          - '1062'
+          - '559'
+      - name: humidity
+        description: The percentage of moisture in the air at the time of data collection, with higher values indicating higher levels of humidity.
+        expr: '"HUMIDITY"'
+        data_type: NUMBER
+        sample_values:
+          - '65'
+          - '50'
+          - '54'
+      - name: temperature
+        description: The temperature column represents the recorded temperature values in degrees Celsius, likely measured at different times or locations, providing a quantitative measure of the environmental temperature.
+        expr: '"TEMPERATURE"'
+        data_type: NUMBER
+        sample_values:
+          - '24'
+          - '22'
+          - '25'
+    primary_key:
+      columns:
+        - LOCATIONID
+        - TIMESTAMP_HOUR
+  - name: room_info
+    description: This table stores information about rooms, including their unique location identifier, the category of the area they belong to, and the size of the area.
+    base_table:
+      database: MELIPS_HANDS_ON
+      schema: STAGING
+      table: ROOM_INFO
+    dimensions:
+      - name: areaCategory
+        description: Category of the room's purpose or function.
+        expr: '"areaCategory"'
+        data_type: TEXT
+        sample_values:
+          - 居室
+          - 会議室
+          - その他
+      - name: areaSize
+        description: The approximate square footage of the room.
+        expr: '"AreaSize"'
+        data_type: NUMBER
+        sample_values:
+          - '6'
+          - '2'
+          - '5'
+      - name: locationID
+        description: Unique identifier for a specific location where the room is situated.
+        expr: '"locationID"'
+        data_type: NUMBER
+        sample_values:
+          - '29'
+          - '1'
+          - '2'
+    primary_key:
+      columns:
+        - LOCATIONID
+relationships:
+  - name: env_data_to_room_info
+    left_table: environmental_data
+    right_table: room_info
+    relationship_columns:
+      - left_column: locationID
+        right_column: LOCATIONID
+    join_type: left_outer
+    relationship_type: many_to_one
