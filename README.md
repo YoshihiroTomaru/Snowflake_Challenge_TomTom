@@ -10,10 +10,10 @@
 
 詳細なセットアップ方法や使用法については、[`python_client/README.md`](./python_client/README.md) を参照してください。
 
-## 2. AIエージェント連携 (MCPサーバー) (`/mcp_server_setup`)
+## 2. Snowflake Managed MCP Server連携 (`/mcp_server_setup`)
 
-`mcp_server_setup`ディレクトリには、ClineのようなAIエージェントがSnowflakeの機能を「ツール」として利用できるようにするための設定ファイルやドキュメントが含まれています。
+`mcp_server_setup`ディレクトリには、VS CodeでSnowflake Managed MCP ServerとGitHub CopilotのCortex Analystを連携させるための設定ファイルとドキュメントが含まれています。
 
-こちらはSnowflakeが管理するマネージドMCPサーバーを利用し、AIエージェントとの対話的なデータ分析を実現します。
+MCPサーバーを使用することで、GitHub Copilot経由でSnowflakeのデータに自然言語でクエリを実行できます。
 
-詳細な設定手順については、[`mcp_server_setup/README.md`](./mcp_server_setup/README.md) を参照してください（現在作成中です）。
+詳細な設定手順については、[`mcp_server_setup/README.md`](./mcp_server_setup/README.md) を参照してください。
