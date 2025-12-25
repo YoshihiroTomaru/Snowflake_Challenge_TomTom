@@ -10,3 +10,6 @@ __pycache__/
 
 # Private keys
 *.p8
+
+# VS Code MCP settings with credentials
+.vscode/mcp.json
