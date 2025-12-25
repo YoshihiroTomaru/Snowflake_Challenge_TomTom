@@ -1,0 +1,11 @@
+{
+	"servers": {
+		"analyst_mcp_server": {
+			"url": "https://<YOUR_ACCOUNT>.snowflakecomputing.com/api/v2/databases/<DATABASE>/schemas/<SCHEMA>/mcp-servers/<MCP_SERVER_NAME>",
+			"type": "http",
+			"headers": {
+            	"Authorization": "Bearer <YOUR_PERSONAL_ACCESS_TOKEN>"
+        	}
+		}		
+	}
+}
