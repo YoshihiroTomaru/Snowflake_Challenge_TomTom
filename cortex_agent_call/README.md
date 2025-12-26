@@ -19,20 +19,39 @@ pip install -r requirements.txt
 
 ### 2. Personal Access Token (PAT) の作成
 
-Snowflakeワークシートで以下のSQLを実行して、PATを作成します：
+SnowsightのUIで簡単にPATを作成できます：
+
+#### Snowsight UIでの作成手順
+
+1. [Snowsight](https://app.snowflake.com/) にサインインします
+2. ナビゲーションメニューで **Admin** » **Users & Roles** を選択します
+3. PATを作成したいユーザー（自分自身）を選択します
+4. **Programmatic access tokens** セクションで、**Generate new token** を選択します
+5. **New programmatic access token** ダイアログで以下を入力：
+   - **Name**: トークンの名前（例: `my_cortex_agent_token`）
+   - **Comment**: トークンの説明（例: `Cortex Agent API access`）
+   - **Expires in**: 有効期限（例: 90日）
+   - **Role**: **Any of my roles** を選択（または特定のロールに制限）
+6. **Generate** を選択します
+7. **生成されたトークンをコピー**してください
+
+**重要**: このダイアログを閉じた後は、トークンをコピーできません！必ず安全な場所に保存してください。
+
+#### SQL コマンドでの作成（代替方法）
+
+Snowflakeワークシートで以下のSQLを実行してPATを作成することもできます：
 
 ```sql
--- PATの作成（有効期限: 90日）
-CREATE OR REPLACE SECRET my_pat
-  TYPE = PASSWORD
-  USERNAME = 'CURRENT_USER()'
-  PASSWORD = (SELECT SYSTEM$GENERATE_USER_TOKEN('YOUR_USER_NAME', 7776000));
+-- 現在のユーザーのPATを作成（90日有効）
+ALTER USER CURRENT_USER() 
+  ADD PROGRAMMATIC ACCESS TOKEN my_token
+  EXPIRES_IN_DAYS = 90;
 
--- PATの値を取得
-SELECT SECRET_STRING FROM my_pat;
+-- トークンの情報を確認
+SHOW USER PROGRAMMATIC ACCESS TOKENS;
 ```
 
-表示されたトークン文字列をコピーしてください。
+**注意**: SQL コマンドでは、トークンのシークレット（実際の文字列）は表示されません。トークンのシークレットを取得するには、Snowsight UIを使用してください。
 
 ### 3. `.env` ファイルの作成
 
