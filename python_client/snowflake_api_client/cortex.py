@@ -1,10 +1,13 @@
 import requests
 
 
-def call_analyst_api(jwt_token, snowflake_account, database, schema, question, semantic_model_file_path=None, semantic_view=None):
+def call_analyst_api(jwt_token, snowflake_account, database, schema, question, semantic_model_file_path=None, semantic_view=None, token_type='KEYPAIR_JWT'):
     """
     JWTトークンと質問を使ってCortex Analyst APIを呼び出す。
     セマンティックモデルまたはセマンティックビューのどちらかを指定する。
+    
+    Args:
+        token_type: 'KEYPAIR_JWT' または 'OAUTH'
     """
     url_account_identifier = snowflake_account.split('.')[0].replace('_', '-').lower()
     url = f"https://{url_account_identifier}.snowflakecomputing.com/api/v2/cortex/analyst/message"
@@ -12,7 +15,7 @@ def call_analyst_api(jwt_token, snowflake_account, database, schema, question, s
     headers = {
         'Authorization': f'Bearer {jwt_token}',
         'Content-Type': 'application/json',
-        'X-Snowflake-Authorization-Token-Type': 'KEYPAIR_JWT'
+        'X-Snowflake-Authorization-Token-Type': token_type
     }
 
     data = {
