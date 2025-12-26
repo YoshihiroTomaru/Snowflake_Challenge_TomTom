@@ -113,9 +113,10 @@ python agent_client.py
 ## ファイル構成
 
 - `agent_client.py`: メインスクリプト（PAT認証でCortex Agent APIを呼び出し）
-- `auth.py`: キーペア認証用ユーティリティ（このプロジェクトでは未使用）
 - `requirements.txt`: 必要なPythonパッケージ
 - `.env`: 環境変数設定ファイル（Git管理外）
+- `.env.example`: 環境変数設定テンプレート
+- `README.md`: このドキュメント
 
 ## PAT認証 vs キーペア認証 vs OAuth認証
 
