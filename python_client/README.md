@@ -1,6 +1,13 @@
 # Snowflake Cortex Analyst API クライアント
 
-このスクリプトは、キーペア認証を使用してSnowflake Cortex Analyst REST APIに接続し、指定されたセマンティックモデルまたはセマンティックビューに対して質問を送信することができます。
+このスクリプトは、**キーペア認証**または**ブラウザOAuth認証**を使用してSnowflake Cortex Analyst REST APIに接続し、指定されたセマンティックモデルまたはセマンティックビューに対して質問を送信することができます。
+
+## 認証方式
+
+2つの認証方式をサポートしています：
+
+1. **キーペア認証（JWT）** - 秘密鍵と公開鍵を使用（デフォルト、推奨）
+2. **ブラウザOAuth認証** - ブラウザでSSOログインを使用（実験的機能）
 
 ## セマンティックモデルとセマンティックビューについて
 
@@ -100,6 +107,66 @@ cp example.env .env
 ### 6. 秘密鍵の配置
 
 生成したご自身の秘密鍵ファイル（例: `rsa_key.p8`）を、`.env` ファイル内の `PRIVATE_KEY_FILE` で指定したパスに配置してください。
+
+## OAuth認証のセットアップ（オプション）
+
+ブラウザベースのOAuth認証を使用する場合は、以下の手順でSnowflakeにOAuth統合を作成してください。
+
+### OAuth統合の作成
+
+Snowflakeワークシートで以下のSQLを実行して、OAuth統合を作成します：
+
+```sql
+CREATE SECURITY INTEGRATION my_oauth_integration
+  TYPE = OAUTH
+  ENABLED = TRUE
+  OAUTH_CLIENT = CUSTOM
+  OAUTH_CLIENT_TYPE = 'PUBLIC'  -- PUBLICクライアント（クライアントシークレット不要）
+  OAUTH_REDIRECT_URI = 'http://localhost:8080/callback'
+  OAUTH_ISSUE_REFRESH_TOKENS = TRUE
+  OAUTH_REFRESH_TOKEN_VALIDITY = 7776000  -- 90日
+  OAUTH_ENFORCE_PKCE = TRUE  -- PKCE（セキュリティ強化）を有効化
+  OAUTH_ALLOW_NON_TLS_REDIRECT_URI = TRUE;  -- localhost開発用
+```
+
+### OAUTH_CLIENT_IDの取得
+
+統合を作成したら、以下のSQLでクライアントIDを取得します：
+
+```sql
+DESC SECURITY INTEGRATION my_oauth_integration;
+```
+
+結果の中から `OAUTH_CLIENT_ID` 行の `property_value` 列の値をコピーして、`.env` ファイルの `OAUTH_CLIENT_ID` に設定してください。
+
+### PUBLIC vs CONFIDENTIAL
+
+- **PUBLIC**: クライアントシークレット不要。モバイル/デスクトップアプリ向け。PKCE で保護。
+- **CONFIDENTIAL**: クライアントシークレット必要。サーバーサイドアプリ向け。
+
+ローカル開発やCLIツールでは、**PUBLICクライアントの方が安全**です（シークレットをコードに埋め込む必要がないため）。
+
+### PKCE（Proof Key for Code Exchange）とは
+
+PKCEは、OAuth認証の安全性を高める仕組みです：
+
+1. アプリが秘密のランダム文字列（`code_verifier`）を生成
+2. それをハッシュ化した `code_challenge` をSnowflakeに送信
+3. 認証後、元の `code_verifier` をSnowflakeに送信して検証
+4. 一致すればトークン発行
+
+これにより、認可コードを横取りされてもトークンを取得できないようになります。
+
+### OAuth認証の実行
+
+`.env` ファイルで `AUTH_METHOD=browser_oauth` に設定してスクリプトを実行すると：
+
+1. ブラウザが自動的に開き、Snowflakeログイン画面が表示されます
+2. SSOでログイン（Entra ID等）
+3. 認証後、自動的にリダイレクトされ、アクセストークンを取得
+4. Cortex Analyst APIへのアクセスが可能になります
+
+**注意**: 現在の実装では、トークンはメモリ内のみに保持されます。スクリプトを終了すると毎回ブラウザ認証が必要です。トークンをファイルにキャッシュする機能を追加することで、90日間は再認証不要にできます。
 
 ## 実行方法
 

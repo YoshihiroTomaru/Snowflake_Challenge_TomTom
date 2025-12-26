@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 from snowflake_api_client.auth import (generate_jwt,
                                        get_private_key_and_fingerprint)
+from snowflake_api_client.oauth import get_oauth_token_browser
 from snowflake_api_client.cortex import call_analyst_api
 
 # .envファイルから環境変数を読み込む
@@ -12,9 +13,12 @@ load_dotenv()
 
 # --- 環境変数から設定を読み込む ---
 SNOWFLAKE_ACCOUNT = os.getenv('SNOWFLAKE_ACCOUNT')
+AUTH_METHOD = os.getenv('AUTH_METHOD', 'keypair')  # デフォルトはキーペア認証
 SNOWFLAKE_USER = os.getenv('SNOWFLAKE_USER')
 PRIVATE_KEY_FILE = os.getenv('PRIVATE_KEY_FILE')
 PRIVATE_KEY_PASSPHRASE = os.getenv('PRIVATE_KEY_PASSPHRASE')
+OAUTH_REDIRECT_PORT = int(os.getenv('OAUTH_REDIRECT_PORT', '8080'))
+OAUTH_CLIENT_ID = os.getenv('OAUTH_CLIENT_ID')
 SNOWFLAKE_DATABASE = os.getenv('SNOWFLAKE_DATABASE')
 SNOWFLAKE_SCHEMA = os.getenv('SNOWFLAKE_SCHEMA')
 
@@ -30,7 +34,7 @@ def main():
     """
     try:
         # --- 設定の検証 ---
-        if not all([SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER, PRIVATE_KEY_FILE, SNOWFLAKE_DATABASE, SNOWFLAKE_SCHEMA]):
+        if not all([SNOWFLAKE_ACCOUNT, SNOWFLAKE_DATABASE, SNOWFLAKE_SCHEMA]):
             print("エラー: 基本的な環境変数が.envファイルに設定されていません。")
             return
 
@@ -43,9 +47,35 @@ def main():
             return
 
         # --- 認証フェーズ ---
-        print("認証トークンを生成しています...")
-        private_key, public_key_fp = get_private_key_and_fingerprint(PRIVATE_KEY_FILE, PRIVATE_KEY_PASSPHRASE)
-        jwt_token = generate_jwt(private_key, public_key_fp, SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER)
+        jwt_token = None
+        token_type = 'KEYPAIR_JWT'  # デフォルト
+        
+        if AUTH_METHOD == 'browser_oauth':
+            print("=== ブラウザOAuth認証を使用します ===")
+            if not OAUTH_CLIENT_ID:
+                print("エラー: OAUTH_CLIENT_IDが.envファイルに設定されていません。")
+                return
+                
+            access_token = get_oauth_token_browser(SNOWFLAKE_ACCOUNT, OAUTH_CLIENT_ID, OAUTH_REDIRECT_PORT)
+            
+            if access_token:
+                print("\n✓ OAuth認証に成功しました。")
+                # OAuthアクセストークンをJWTトークンとして使用
+                jwt_token = access_token
+                token_type = 'OAUTH'
+            else:
+                print("OAuth認証に失敗しました。")
+                return
+                
+        else:  # keypair認証
+            print("=== キーペア認証を使用します ===")
+            if not all([SNOWFLAKE_USER, PRIVATE_KEY_FILE]):
+                print("エラー: キーペア認証に必要な環境変数が設定されていません。")
+                return
+            print("認証トークンを生成しています...")
+            private_key, public_key_fp = get_private_key_and_fingerprint(PRIVATE_KEY_FILE, PRIVATE_KEY_PASSPHRASE)
+            jwt_token = generate_jwt(private_key, public_key_fp, SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER)
+        
         print("認証トークンの生成に成功しました。")
 
         # --- 質問フェーズ ---
@@ -64,7 +94,8 @@ def main():
                 schema=SNOWFLAKE_SCHEMA,
                 question=question,
                 semantic_model_file_path=model_path,
-                semantic_view=SEMANTIC_VIEW_NAME
+                semantic_view=SEMANTIC_VIEW_NAME,
+                token_type=token_type
             )
 
             print("\n--- APIからの回答 ---")
